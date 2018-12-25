@@ -1,12 +1,27 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Share that!</title>
-    </head>
-    <body>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Share that!</title>
+</head>
+<body>
 
-        <h1>Homepage</h1>
+<h1>Homepage</h1>
 
-    </body>
+<form th:action="@{/file}" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" />
+    <input type="submit" content="Upload" />
+</form>
+
+
+<ul th:each="file : ${files}">
+    <li>
+        <a th:href="@{'/file/' + ${file.getHash()}}"
+           th:text="${file.getName()}">
+        </a>
+    </li>
+</ul>
+
+
+</body>
 </html>
