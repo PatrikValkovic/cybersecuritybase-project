@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -21,8 +22,13 @@ public class SQLcontext {
         this.source = this.connection.dataSource();
     }
 
+    @FunctionalInterface
+    public interface FunctionSQLException<P, R> {
+        R apply(P p) throws SQLException;
+    }
 
-    public <T> T ExecuteAndCommit(Function<Connection, T> callback) throws SQLException {
+
+    public <T> T executeAndCommit(FunctionSQLException<Connection, T> callback) throws SQLException {
         Connection conn = null;
         try {
             conn = this.source.getConnection();
@@ -37,7 +43,7 @@ public class SQLcontext {
         }
     }
 
-    public <T> T Execute(Function<Connection, T> callback) throws SQLException {
+    public <T> T execute(FunctionSQLException<Connection, T> callback) throws SQLException {
         Connection conn = null;
         try {
             conn = this.source.getConnection();
@@ -49,6 +55,19 @@ public class SQLcontext {
         finally{
             if(conn != null)
                 conn.close();
+        }
+    }
+
+    public <T> T statement(Connection conn, FunctionSQLException<Statement, T> callback) throws SQLException {
+        Statement stm = null;
+        try{
+            stm = conn.createStatement();
+            T res = callback.apply(stm);
+            return res;
+        }
+        finally{
+            if(stm != null)
+                stm.close();
         }
     }
 
