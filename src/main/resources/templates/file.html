@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Share that!</title>
+</head>
+<body>
+
+<a th:href="@{'/home'}">
+    home
+</a>
+
+<h1 th:text="${'About file ' + file.getName()}"></h1>
+
+<h2>
+    <a th:href="@{'/download/' + ${file.getHash()}}">
+        Download
+    </a>
+</h2>
+
+<div th:each="comment : ${file.getComments()}">
+    <p th:utext="${comment.getContent()}"></p>
+</div>
+
+<form th:action="@{/comment}" method="POST">
+    <input type="hidden" name="file" th:value="${file.getHash()}" />
+    <textarea name="content"></textarea>
+    <br />
+    <input type="submit" content="Send" />
+</form>
+
+
+
+
+</body>
+</html>

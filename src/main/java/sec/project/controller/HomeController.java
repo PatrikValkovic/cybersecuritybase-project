@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import sec.project.domain.Comment;
 import sec.project.domain.StoredFile;
 import sec.project.domain.User;
+import sec.project.repository.CommentsRepository;
 import sec.project.services.Files;
 import sec.project.services.UserValidation;
 import sun.misc.IOUtils;
@@ -29,11 +31,13 @@ public class HomeController {
 
     private UserValidation user;
     private Files files;
+    private CommentsRepository comments;
 
     @Autowired
-    public HomeController(UserValidation user, Files files) {
+    public HomeController(UserValidation user, Files files, CommentsRepository comments) {
         this.user = user;
         this.files = files;
+        this.comments = comments;
     }
 
     @RequestMapping("/home")
@@ -102,8 +106,19 @@ public class HomeController {
         return "redirect:/home";
     }
 
-
     @RequestMapping(value = "/file/{hash}", method = RequestMethod.GET)
+    public String showFile(@PathVariable("hash") String hash,
+                           Model model){
+        StoredFile f = files.findByHash(hash);
+        if(f == null)
+            return "redirect:/home";
+
+        model.addAttribute("file", f);
+        return "file";
+    }
+
+
+    @RequestMapping(value = "/download/{hash}", method = RequestMethod.GET)
     public void getFile(@PathVariable("hash") String hash,
                         HttpServletResponse response) throws IOException {
         StoredFile f = files.findByHash(hash);
@@ -123,6 +138,23 @@ public class HomeController {
             }
         }
         response.flushBuffer();
+    }
+
+    @RequestMapping(value = "/comment", method = RequestMethod.POST)
+    public String addComment(@RequestParam("file") String file,
+                             @RequestParam("content") String content){
+
+        StoredFile f = files.findByHash(file);
+        if(f == null)
+            return "redirect:/home";
+
+        Comment c = new Comment();
+        c.setFile(f);
+        c.setContent(content);
+
+        comments.save(c);
+
+        return "redirect:/file/" + f.getHash();
     }
 
 }
